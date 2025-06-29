@@ -5,7 +5,12 @@
   "directories": {
     "doc": "docs"
   },
+  "bin": {
+    "ts-indexer": "dist/cli.js"
+  },
   "scripts": {
+    "build": "tsc",
+    "start": "node dist/cli.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",
