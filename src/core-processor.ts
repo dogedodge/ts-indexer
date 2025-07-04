@@ -5,13 +5,25 @@ import { generateSummary } from './ollama-service'
 import { FileSummary } from './types'
 import ora from 'ora'
 
+/**
+ * 获取相对于当前工作目录的路径
+ * @param absolutePath 绝对路径
+ * @returns 相对于当前工作目录的路径
+ */
+export const getRelativePath = (absolutePath: string): string => {
+  return path.relative(process.cwd(), absolutePath)
+}
+
 export const processDirectory = async (
   dirPath: string,
   concurrency = 3
 ): Promise<FileSummary[]> => {
+  // 获取绝对路径
+  const absoluteDirPath = path.isAbsolute(dirPath) ? dirPath : path.resolve(dirPath)
+  
   const spinner = ora('扫描TypeScript文件...').start()
   const files = await fg(['**/*.{ts,d.ts,tsx}'], {
-    cwd: dirPath,
+    cwd: absoluteDirPath,
     absolute: false,
     ignore: ['**/node_modules/**']
   })
@@ -26,14 +38,17 @@ export const processDirectory = async (
   }
 
   const processFile = async (file: string): Promise<FileSummary> => {
-    const filePath = path.join(dirPath, file)
+    const filePath = path.join(absoluteDirPath, file)
     try {
       const content = await fs.readFile(filePath, 'utf-8')
       const summary = await generateSummary(content)
-      return { path: file, content, summary }
+      // 存储相对于当前工作目录的路径
+      const relativePath = getRelativePath(filePath)
+      return { path: relativePath, content, summary }
     } catch (error) {
+      const relativePath = getRelativePath(path.join(absoluteDirPath, file))
       return { 
-        path: file, 
+        path: relativePath, 
         content: '', 
         error: error instanceof Error ? error.message : '未知错误' 
       }

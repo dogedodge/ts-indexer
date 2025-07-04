@@ -5,6 +5,7 @@
 1. **核心处理模块**
    - 文件遍历：使用`fast-glob`高效递归扫描目录
    - 文件处理：读取内容并调用Ollama API
+   - 路径处理：确保输出中的文件路径相对于当前工作目录
    - 结果生成：构建Markdown索引
 
 2. **AI交互模块**
@@ -124,13 +125,25 @@ import { generateSummary } from './ollama-service'
 import { FileSummary } from './types'
 import ora from 'ora'
 
+/**
+ * 获取相对于当前工作目录的路径
+ * @param absolutePath 绝对路径
+ * @returns 相对于当前工作目录的路径
+ */
+export const getRelativePath = (absolutePath: string): string => {
+  return path.relative(process.cwd(), absolutePath)
+}
+
 export const processDirectory = async (
   dirPath: string,
   concurrency = 3
 ): Promise<FileSummary[]> => {
+  // 获取绝对路径
+  const absoluteDirPath = path.isAbsolute(dirPath) ? dirPath : path.resolve(dirPath)
+  
   const spinner = ora('扫描TypeScript文件...').start()
-  const files = await fg(['**/*.{ts,d.ts}'], {
-    cwd: dirPath,
+  const files = await fg(['**/*.{ts,d.ts,tsx}'], {
+    cwd: absoluteDirPath,
     absolute: false,
     ignore: ['**/node_modules/**']
   })
@@ -145,14 +158,17 @@ export const processDirectory = async (
   }
 
   const processFile = async (file: string): Promise<FileSummary> => {
-    const filePath = path.join(dirPath, file)
+    const filePath = path.join(absoluteDirPath, file)
     try {
       const content = await fs.readFile(filePath, 'utf-8')
       const summary = await generateSummary(content)
-      return { path: file, content, summary }
+      // 存储相对于当前工作目录的路径
+      const relativePath = getRelativePath(filePath)
+      return { path: relativePath, content, summary }
     } catch (error) {
+      const relativePath = getRelativePath(path.join(absoluteDirPath, file))
       return { 
-        path: file, 
+        path: relativePath, 
         content: '', 
         error: error instanceof Error ? error.message : '未知错误' 
       }
@@ -287,13 +303,13 @@ ts-indexer
 
 > 本文件由AI生成，包含项目TypeScript文件的简要描述
 
-## `src/utils.ts`
+## `project/src/utils.ts`
 提供通用工具函数，包括日期格式化、字符串处理和错误包装器
 
-## `api/types.d.ts`
+## `project/api/types.d.ts`
 定义API请求和响应的TypeScript接口类型
 
-## `components/Button.tsx`
+## `project/components/Button.tsx`
 实现可复用的React按钮组件，支持多种状态和样式变体
 ```
 
@@ -303,8 +319,9 @@ ts-indexer
 2. **并发控制**：限制同时处理的文件数量（默认3个）
 3. **错误恢复**：单个文件失败不影响整体流程
 4. **进度反馈**：实时显示处理百分比
-5. **模块化提示词**：使用外部markdown文件存储提示词模板，支持`{{变量}}`占位符替换
-6. **prompt优化**：明确要求功能描述重点关注可能被外部引用的代码及其用途
+5. **相对路径处理**：确保输出中的文件路径相对于当前工作目录(pwd)
+6. **模块化提示词**：使用外部markdown文件存储提示词模板，支持`{{变量}}`占位符替换
+7. **prompt优化**：明确要求功能描述重点关注可能被外部引用的代码及其用途
 
 > 注意：使用前需确保本地已安装并运行Ollama服务，且`qwen2.5-coder:1.5b`模型已下载 (`ollama pull qwen2.5-coder:1.5b`)
 
