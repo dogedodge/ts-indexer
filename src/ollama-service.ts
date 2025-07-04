@@ -7,7 +7,7 @@ export const generateSummary = async (
   content: string,
   model = 'qwen2.5-coder:1.5b'
 ): Promise<string> => {
-  const prompt = `请用50字以内描述以下TypeScript文件的用途，只返回核心功能说明：\n\`\`\`typescript\n${content}\n\`\`\``
+  const prompt = `请描述以下TypeScript文件的用途，重点关注可能被外部引用的代码及其用途，忽略技术栈选择、框架细节、内部实现：\n\`\`\`typescript\n${content}\n\`\`\``
 
   try {
     const response = await axios.post<OllamaResponse>(OLLAMA_BASE_URL, {
@@ -16,7 +16,7 @@ export const generateSummary = async (
       stream: false,
       options: {
         temperature: 0.2,
-        num_predict: 100
+        // num_predict: 100
       }
     })
   
