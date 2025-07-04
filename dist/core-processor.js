@@ -11,7 +11,7 @@ const ollama_service_1 = require("./ollama-service");
 const ora_1 = __importDefault(require("ora"));
 const processDirectory = async (dirPath, concurrency = 3) => {
     const spinner = (0, ora_1.default)('扫描TypeScript文件...').start();
-    const files = await (0, fast_glob_1.default)(['**/*.{ts,d.ts}'], {
+    const files = await (0, fast_glob_1.default)(['**/*.{ts,d.ts,tsx}'], {
         cwd: dirPath,
         absolute: false,
         ignore: ['**/node_modules/**']
