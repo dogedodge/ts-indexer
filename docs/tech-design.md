@@ -24,7 +24,8 @@
 ### 项目结构
 
 ```
-├── code_index.md          # 生成的索引文件
+├── .ai-mat/
+│   └── code-index.md     # 生成的索引文件
 ├── package.json           # 项目配置
 ├── README.md              # 项目说明
 ├── tsconfig.json          # TypeScript配置
@@ -210,7 +211,7 @@ program
   .description('生成TypeScript文件AI描述索引')
   .version('1.0.0')
   .option('-d, --dir <path>', '目标目录路径', process.cwd())
-  .option('-o, --output <path>', '输出Markdown文件路径', './code_index.md')
+  .option('-o, --output <path>', '输出Markdown文件路径', '.ai-mat/code-index.md')
   .option('-c, --concurrency <number>', '并发处理数', '3')
   .parse(process.argv)
 
@@ -232,7 +233,7 @@ const run = async () => {
         type: 'input',
         name: 'output',
         message: '请输入输出文件路径:',
-        default: './code_index.md'
+        default: '.ai-mat/code-index.md'
       },
       {
         type: 'number',
@@ -269,18 +270,18 @@ run()
 
 #### 1. 命令行参数模式
 ```bash
-ts-indexer -d ./src -o ./docs/code_index.md -c 5
+ts-indexer -d ./src -o ./.ai-mat/code-index.md -c 5
 ```
 
 #### 2. 交互式模式
 ```bash
 ts-indexer
 ? 请输入目标目录路径: ./src
-? 请输入输出文件路径: ./docs/code_index.md
+? 请输入输出文件路径: ./.ai-mat/code-index.md
 ? 设置并发处理数: 3
 ```
 
-#### 3. 输出示例 (`code_index.md`)
+#### 3. 输出示例 (`.ai-mat/code-index.md`)
 ```markdown
 # TypeScript文件索引
 

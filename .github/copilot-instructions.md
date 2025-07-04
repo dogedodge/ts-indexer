@@ -1,0 +1,3 @@
+- 如果需要找文件请先阅读 docs/tech-design.md
+- 涉及架构改动的话请更新 docs/tech-design.md
+- 所有会被外部引用的代码必须写注释

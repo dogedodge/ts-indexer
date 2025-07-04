@@ -11,7 +11,7 @@ program
   .description("生成TypeScript文件AI描述索引")
   .version("1.0.0")
   .option("-d, --dir <path>", "目标目录路径", process.cwd())
-  .option("-o, --output <path>", "输出Markdown文件路径", "./code_index.md")
+  .option("-o, --output <path>", "输出Markdown文件路径", ".ai-mat/code-index.md")
   .option("-c, --concurrency <number>", "并发处理数", "3")
   .parse(process.argv);
 
@@ -38,7 +38,7 @@ const run = async () => {
         type: "input",
         name: "output",
         message: "请输入输出文件路径:",
-        default: "./code_index.md",
+        default: ".ai-mat/code-index.md",
       },
       {
         type: "number",
