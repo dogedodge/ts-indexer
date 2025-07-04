@@ -21,6 +21,24 @@
    - 生成结构化的Markdown文件
    - 包含文件路径和AI生成的描述
 
+### 项目结构
+
+```
+├── code_index.md          # 生成的索引文件
+├── package.json           # 项目配置
+├── README.md              # 项目说明
+├── tsconfig.json          # TypeScript配置
+├── docs/
+│   └── tech-design.md     # 技术设计文档
+├── prompt/
+│   └── summary.md         # 提示词模板文件
+└── src/
+    ├── cli.ts             # CLI入口
+    ├── core-processor.ts  # 核心处理逻辑
+    ├── ollama-service.ts  # Ollama API封装
+    └── types.ts           # 类型定义
+```
+
 ### 关键代码实现
 
 #### 1. 依赖安装
@@ -49,14 +67,34 @@ export interface OllamaResponse {
 ```typescript
 import axios from 'axios'
 import { OllamaResponse } from './types'
+import fs from 'fs'
+import path from 'path'
 
 const OLLAMA_BASE_URL = 'http://localhost:11434/api/generate'
+
+/**
+ * 加载提示词模板并替换占位符
+ * @param templatePath 模板文件路径
+ * @param replacements 替换键值对象
+ * @returns 处理后的提示词字符串
+ */
+const loadPromptTemplate = (templatePath: string, replacements: Record<string, string>): string => {
+  const templateDir = path.join(__dirname, '..', 'prompt')
+  const filePath = path.join(templateDir, templatePath)
+  let template = fs.readFileSync(filePath, 'utf-8')
+  
+  Object.entries(replacements).forEach(([key, value]) => {
+    template = template.replace(new RegExp(`{{${key}}}`, 'g'), value)
+  })
+  
+  return template
+}
 
 export const generateSummary = async (
   content: string,
   model = 'qwen2.5-coder:1.5b'
 ): Promise<string> => {
-  const prompt = `请用50字以内描述以下TypeScript文件的用途，只返回核心功能说明：\n\`\`\`typescript\n${content}\n\`\`\``
+  const prompt = loadPromptTemplate('summary.md', { content })
 
   try {
     const response = await axios.post<OllamaResponse>(OLLAMA_BASE_URL, {
@@ -264,6 +302,19 @@ ts-indexer
 2. **并发控制**：限制同时处理的文件数量（默认3个）
 3. **错误恢复**：单个文件失败不影响整体流程
 4. **进度反馈**：实时显示处理百分比
-5. **prompt优化**：明确要求50字以内的功能描述
+5. **模块化提示词**：使用外部markdown文件存储提示词模板，支持`{{变量}}`占位符替换
+6. **prompt优化**：明确要求功能描述重点关注可能被外部引用的代码及其用途
 
 > 注意：使用前需确保本地已安装并运行Ollama服务，且`qwen2.5-coder:1.5b`模型已下载 (`ollama pull qwen2.5-coder:1.5b`)
+
+### 提示词模板
+
+提示词模板存放在`prompt`目录中，使用Markdown格式，包含占位符以便动态替换内容：
+
+#### `prompt/summary.md`
+```markdown
+请描述以下TypeScript文件的用途，重点关注可能被外部引用的代码及其用途，忽略技术栈选择、框架细节、内部实现：
+```typescript
+{{content}}
+```
+```
