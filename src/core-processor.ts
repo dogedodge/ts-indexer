@@ -10,7 +10,7 @@ export const processDirectory = async (
   concurrency = 3
 ): Promise<FileSummary[]> => {
   const spinner = ora('扫描TypeScript文件...').start()
-  const files = await fg(['**/*.{ts,d.ts}'], {
+  const files = await fg(['**/*.{ts,d.ts,tsx}'], {
     cwd: dirPath,
     absolute: false,
     ignore: ['**/node_modules/**']
