@@ -5,9 +5,26 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.generateSummary = void 0;
 const axios_1 = __importDefault(require("axios"));
+const fs_1 = __importDefault(require("fs"));
+const path_1 = __importDefault(require("path"));
 const OLLAMA_BASE_URL = 'http://localhost:11434/api/generate';
-const generateSummary = async (content, model = 'qwen2.5-coder:1.5b') => {
-    const prompt = `请描述以下TypeScript文件的用途，重点关注可能被外部引用的代码及其用途，忽略技术栈选择、框架细节、内部实现：\n\`\`\`typescript\n${content}\n\`\`\``;
+/**
+ * Loads a prompt template from a file and replaces placeholders
+ * @param templatePath Path to the template file
+ * @param replacements Object with keys as placeholders and values as replacements
+ * @returns Processed prompt string
+ */
+const loadPromptTemplate = (templatePath, replacements) => {
+    const templateDir = path_1.default.join(__dirname, '..', 'prompt');
+    const filePath = path_1.default.join(templateDir, templatePath);
+    let template = fs_1.default.readFileSync(filePath, 'utf-8');
+    Object.entries(replacements).forEach(([key, value]) => {
+        template = template.replace(new RegExp(`{{${key}}}`, 'g'), value);
+    });
+    return template;
+};
+const generateSummary = async (content, model = 'qwen2.5-coder:7b') => {
+    const prompt = loadPromptTemplate('summary.md', { content });
     try {
         const response = await axios_1.default.post(OLLAMA_BASE_URL, {
             model,

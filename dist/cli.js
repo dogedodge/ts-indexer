@@ -8,13 +8,29 @@ const inquirer_1 = __importDefault(require("inquirer"));
 const commander_1 = require("commander");
 const core_processor_1 = require("./core-processor");
 const fs_1 = require("fs");
+const path_1 = __importDefault(require("path"));
 const program = new commander_1.Command();
+/**
+ * 确保目录存在，如果不存在则创建
+ * @param filePath 文件路径
+ * @returns 解析的Promise
+ */
+async function ensureDirectoryExists(filePath) {
+    const dirname = path_1.default.dirname(filePath);
+    try {
+        await fs_1.promises.access(dirname);
+    }
+    catch (error) {
+        // 目录不存在，创建目录
+        await fs_1.promises.mkdir(dirname, { recursive: true });
+    }
+}
 program
     .name("ts-indexer")
     .description("生成TypeScript文件AI描述索引")
     .version("1.0.0")
     .option("-d, --dir <path>", "目标目录路径", process.cwd())
-    .option("-o, --output <path>", "输出Markdown文件路径", "./code_index.md")
+    .option("-o, --output <path>", "输出Markdown文件路径", ".ai-mat/code-index.md")
     .option("-c, --concurrency <number>", "并发处理数", "3")
     .parse(process.argv);
 const run = async () => {
@@ -39,7 +55,7 @@ const run = async () => {
                 type: "input",
                 name: "output",
                 message: "请输入输出文件路径:",
-                default: "./code_index.md",
+                default: ".ai-mat/code-index.md",
             },
             {
                 type: "number",
@@ -61,6 +77,8 @@ const run = async () => {
     try {
         const summaries = await (0, core_processor_1.processDirectory)(dir, parseInt(concurrency));
         const markdown = (0, core_processor_1.generateMarkdown)(summaries);
+        // 确保输出文件的目录存在
+        await ensureDirectoryExists(output);
         await fs_1.promises.writeFile(output, markdown);
         console.log(`\n✅ 索引文件已生成: ${output}`);
         const successCount = summaries.filter((s) => !s.error).length;
