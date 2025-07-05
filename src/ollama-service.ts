@@ -25,7 +25,7 @@ const loadPromptTemplate = (templatePath: string, replacements: Record<string, s
 
 export const generateSummary = async (
   content: string,
-  model = 'qwen2.5-coder:1.5b'
+  model = 'qwen2.5-coder:7b'
 ): Promise<string> => {
   const prompt = loadPromptTemplate('summary.md', { content })
 

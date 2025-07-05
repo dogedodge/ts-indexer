@@ -10,6 +10,7 @@ A CLI tool that generates AI-powered descriptions for TypeScript files in your p
 - Progress feedback with percentage completion
 - Concurrent processing for faster results
 - Error handling with individual file failure isolation
+- Automatically creates output directories if they don't exist
 
 ## Installation
 

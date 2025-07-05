@@ -3,8 +3,24 @@ import inquirer from "inquirer";
 import { Command } from "commander";
 import { processDirectory, generateMarkdown } from "./core-processor";
 import { promises as fs } from "fs";
+import path from "path";
 
 const program = new Command();
+
+/**
+ * 确保目录存在，如果不存在则创建
+ * @param filePath 文件路径
+ * @returns 解析的Promise
+ */
+async function ensureDirectoryExists(filePath: string): Promise<void> {
+  const dirname = path.dirname(filePath);
+  try {
+    await fs.access(dirname);
+  } catch (error) {
+    // 目录不存在，创建目录
+    await fs.mkdir(dirname, { recursive: true });
+  }
+}
 
 program
   .name("ts-indexer")
@@ -61,6 +77,10 @@ const run = async () => {
   try {
     const summaries = await processDirectory(dir, parseInt(concurrency));
     const markdown = generateMarkdown(summaries);
+    
+    // 确保输出文件的目录存在
+    await ensureDirectoryExists(output);
+    
     await fs.writeFile(output, markdown);
     console.log(`\n✅ 索引文件已生成: ${output}`);
 
